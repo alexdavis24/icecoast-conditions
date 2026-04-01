@@ -1,0 +1,11 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "icecoast-conditions"
+version = "0.1.0"
+description = "Local-first ski conditions platform for the Northeast."
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = []
