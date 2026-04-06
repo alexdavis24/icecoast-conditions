@@ -8,6 +8,8 @@ Working context:
 - Backend: FastAPI
 - Data pipeline: Python workers that likely write to Postgres
 - Deployment / local hosting direction: Cloudflare
+- Frontend runs as a Vite app and proxies API requests to the backend in compose
+- Keep the compose file and Dockerfiles aligned with the local development flow
 
 Guidance for future work:
 

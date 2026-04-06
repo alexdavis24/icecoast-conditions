@@ -2,11 +2,18 @@
 
 Local-first web app for tracking Northeast ski conditions and what is happening across the region.
 
-## Intended shape
+## Current shape
 
-- `src/frontend/` will hold the React frontend
-- `src/backend/` will hold the FastAPI backend
-- `src/pipeline/` will hold Python workers that collect and shape data for Postgres
-- Cloudflare will be used for local hosting and related edge infrastructure
+- `src/frontend/` contains a minimal React sample app
+- `src/backend/` contains a minimal FastAPI API
+- `src/pipeline/` is reserved for future Python workers that will shape data for Postgres
+- `docker-compose.yml` brings up the frontend and backend together for local development
 
-This repository is currently a skeleton only. It does not implement any of the application pieces yet.
+## Run it locally
+
+```bash
+docker compose up --build
+```
+
+- Frontend: `http://localhost:3000`
+- Backend: `http://localhost:8000`
