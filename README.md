@@ -11,6 +11,8 @@ Local-first web app for tracking Northeast ski conditions and what is happening 
 
 ## Run it locally
 
+Copy `.env.example` to `.env` first, then start the stack.
+
 ```bash
 docker compose up --build
 ```

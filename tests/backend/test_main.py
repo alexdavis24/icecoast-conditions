@@ -4,6 +4,28 @@ import db
 import main
 
 
+def test_read_env_file_parses_values(tmp_path):
+    env_file = tmp_path / ".env"
+    env_file.write_text(
+        "\n".join(
+            [
+                "# sample config",
+                "POSTGRES_DB=icecoast",
+                "POSTGRES_USER=icecoast",
+                "POSTGRES_PASSWORD=icecoast",
+                "DATABASE_URL=postgresql://icecoast:icecoast@postgres:5432/icecoast",
+            ]
+        )
+    )
+
+    values = db.read_env_file(env_file)
+
+    assert values["POSTGRES_DB"] == "icecoast"
+    assert values["POSTGRES_USER"] == "icecoast"
+    assert values["POSTGRES_PASSWORD"] == "icecoast"
+    assert values["DATABASE_URL"] == "postgresql://icecoast:icecoast@postgres:5432/icecoast"
+
+
 def test_startup_initializes_database(monkeypatch):
     calls: list[str] = []
 

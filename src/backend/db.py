@@ -3,14 +3,34 @@ from __future__ import annotations
 from collections.abc import Iterator
 from contextlib import contextmanager
 import os
+from pathlib import Path
 
 import psycopg
 
 
-DATABASE_URL = os.getenv(
-    "DATABASE_URL",
-    "postgresql://icecoast:icecoast@postgres:5432/icecoast",
-)
+ENV_FILE = Path(__file__).resolve().parents[2] / ".env"
+
+
+def read_env_file(path: Path) -> dict[str, str]:
+    values: dict[str, str] = {}
+    if not path.exists():
+        return values
+
+    for raw_line in path.read_text().splitlines():
+        line = raw_line.strip()
+        if not line or line.startswith("#") or "=" not in line:
+            continue
+        key, value = line.split("=", 1)
+        values[key.strip()] = value.strip().strip('"').strip("'")
+
+    return values
+
+
+for key, value in read_env_file(ENV_FILE).items():
+    os.environ.setdefault(key, value)
+
+
+DATABASE_URL = os.environ["DATABASE_URL"]
 
 
 @contextmanager
