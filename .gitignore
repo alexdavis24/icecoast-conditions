@@ -1,3 +1,7 @@
+# superpower plans
+docs/superpowers/plans/*
+docs/superpowers/specs/*
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[codz]
