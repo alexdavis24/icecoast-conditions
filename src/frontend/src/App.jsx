@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 
 export default function App() {
   const [status, setStatus] = useState("Loading...");
+  const [messageState, setMessageState] = useState("idle");
 
   useEffect(() => {
     let active = true;
@@ -30,6 +31,27 @@ export default function App() {
     };
   }, []);
 
+  async function handleSaveMessage() {
+    setMessageState("saving");
+
+    try {
+      const response = await fetch("/api/messages", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error("Request failed");
+      }
+
+      setMessageState("saved");
+    } catch {
+      setMessageState("failed");
+    }
+  }
+
   return (
     <main className="page">
       <section className="card">
@@ -41,6 +63,23 @@ export default function App() {
         <div className="status">
           <span className="status-label">Current sample status</span>
           <span className="status-value">{status}</span>
+        </div>
+        <div className="message-panel">
+          <button
+            className="message-button"
+            type="button"
+            onClick={handleSaveMessage}
+            disabled={messageState === "saving"}
+          >
+            {messageState === "saving" ? "Saving..." : "Save dummy message"}
+          </button>
+          <p className={`message-feedback message-feedback-${messageState}`}>
+            {messageState === "saved"
+              ? "Dummy message saved to Postgres."
+              : messageState === "failed"
+                ? "Could not save the dummy message."
+                : "Click the button to write one dummy row into the database."}
+          </p>
         </div>
       </section>
     </main>
