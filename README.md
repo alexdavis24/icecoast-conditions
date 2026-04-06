@@ -19,3 +19,13 @@ docker compose up --build
 
 - Frontend: `http://localhost:3000`
 - Backend: `http://localhost:8000`
+
+## Pipeline
+
+Run the Open-Meteo backfill from the repo root with:
+
+```bash
+./icecoast-pipeline backfill --location stowe-vt --start 2024-01-01 --end 2024-01-31
+```
+
+The wrapper expects `DATABASE_URL` to point at the running Postgres instance.

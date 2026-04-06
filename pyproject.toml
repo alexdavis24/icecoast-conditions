@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools>=68", "wheel"]
+requires = ["setuptools>=52", "wheel>=0.36.2"]
 build-backend = "setuptools.build_meta"
 
 [project]
@@ -8,4 +8,23 @@ version = "0.1.0"
 description = "Local-first ski conditions platform for the Northeast."
 readme = "README.md"
 requires-python = ">=3.11"
-dependencies = []
+dependencies = [
+  "fastapi==0.115.8",
+  "psycopg[binary]>=3.1",
+  "uvicorn[standard]==0.34.0",
+]
+
+[project.optional-dependencies]
+dev = [
+  "pytest>=8.0",
+]
+
+[project.scripts]
+icecoast-pipeline = "pipeline.cli:main"
+
+[tool.setuptools]
+py-modules = ["db", "main", "schema"]
+
+[tool.setuptools.package-dir]
+"" = "src/backend"
+pipeline = "src/pipeline"
