@@ -99,7 +99,10 @@ def test_save_dummy_message_inserts_into_messages_table(monkeypatch):
 
     assert message_id == 7
     assert any("CREATE TABLE IF NOT EXISTS frontend_messages" in sql for sql, _ in connection.statements)
-    assert any("INSERT INTO frontend_messages" in sql for sql, _ in connection.statements)
+    assert (
+        "INSERT INTO frontend_messages (body) VALUES (%s) RETURNING id",
+        ("Hello from the frontend",),
+    ) in connection.statements
     assert connection.committed is True
 
 

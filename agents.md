@@ -15,4 +15,5 @@ Guidance for future work:
 
 - Keep frontend, backend, and pipeline concerns separated by directory
 - Prefer small, explicit interfaces between layers
+- All SQL must use parameterized queries; do not build SQL by interpolating user input or environment values into query strings
 - Avoid duplicating product description here; the README should stay the user-facing overview
