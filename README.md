@@ -8,7 +8,7 @@ The public frontend is intended to run on Cloudflare Pages with country-based
 edge blocking on `icecoastnicecoast.com` and a Cloudflare Access-protected
 preview hostname at `preview.icecoastnicecoast.com`.
 
-See `docs/operations/cloudflare-pages-live-hosting.md` for the deployment
+See [docs/operations/cloudflare-pages-live-hosting.md](docs/operations/cloudflare-pages-live-hosting.md) for the deployment
 runbook and verification checklist.
 
 ## Current shape
