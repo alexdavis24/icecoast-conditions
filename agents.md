@@ -17,3 +17,5 @@ Guidance for future work:
 - Prefer small, explicit interfaces between layers
 - All SQL must use parameterized queries; do not build SQL by interpolating user input or environment values into query strings
 - Avoid duplicating product description here; the README should stay the user-facing overview
+- Capture durable architecture and data-model decisions as ADRs under `docs/adr/`
+- Do not commit design specs or implementation plans unless a task explicitly asks for them
