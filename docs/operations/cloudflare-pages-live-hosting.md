@@ -64,3 +64,14 @@ Action: `Block`
 3. Production hostname is blocked from a disallowed region
 4. Preview hostname prompts for Access login
 5. Preview hostname is reachable after successful login from a disallowed region
+
+## Manual Launch Checklist
+
+- Pages project created
+- Production domain attached
+- Preview domain attached
+- Production WAF country rule enabled
+- Preview Access application enabled
+- Allowed-region test passed
+- Blocked-region test passed
+- Access bypass test passed
