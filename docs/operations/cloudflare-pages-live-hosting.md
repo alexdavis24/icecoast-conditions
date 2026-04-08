@@ -40,13 +40,13 @@ hostname.
 Example expression shape:
 
 ```text
-(http.host eq "icecoastnicecoast.com" and ip.geoip.country ne "US" and ip.geoip.country ne "CA" ...)
+(http.host eq "icecoastnicecoast.com" and ip.src.country ne "US" and ip.src.country ne "CA" ...)
 ```
 
 Exact launch allowlist expression:
 
 ```text
-(http.host eq "icecoastnicecoast.com" and not ip.geoip.country in {"US" "CA" "AD" "AL" "AT" "BA" "BE" "BG" "CH" "CY" "CZ" "DE" "DK" "EE" "ES" "FI" "FR" "GB" "GR" "HR" "HU" "IE" "IS" "IT" "LI" "LT" "LU" "LV" "MC" "ME" "MK" "MT" "NL" "NO" "PL" "PT" "RO" "RS" "SE" "SI" "SK" "SM" "UA" "VA"})
+(http.host eq "icecoastnicecoast.com" and not ip.src.country in {"US" "CA" "AD" "AL" "AT" "BA" "BE" "BG" "CH" "CY" "CZ" "DE" "DK" "EE" "ES" "FI" "FR" "GB" "GR" "HR" "HU" "IE" "IS" "IT" "LI" "LT" "LU" "LV" "MC" "ME" "MK" "MT" "NL" "NO" "PL" "PT" "RO" "RS" "SE" "SI" "SK" "SM" "UA" "VA"})
 ```
 
 Action: `Block`
