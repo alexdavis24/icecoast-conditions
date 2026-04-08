@@ -1,86 +1,32 @@
-import { useEffect, useState } from "react";
-
 export default function App() {
-  const [status, setStatus] = useState("Loading...");
-  const [messageState, setMessageState] = useState("idle");
-
-  useEffect(() => {
-    let active = true;
-
-    async function loadStatus() {
-      try {
-        const response = await fetch("/api/conditions");
-        if (!response.ok) {
-          throw new Error("Request failed");
-        }
-        const data = await response.json();
-        if (active) {
-          setStatus(`${data.region}: ${data.summary}`);
-        }
-      } catch {
-        if (active) {
-          setStatus("Backend is reachable, but the sample feed did not respond.");
-        }
-      }
-    }
-
-    loadStatus();
-
-    return () => {
-      active = false;
-    };
-  }, []);
-
-  async function handleSaveMessage() {
-    setMessageState("saving");
-
-    try {
-      const response = await fetch("/api/messages", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error("Request failed");
-      }
-
-      setMessageState("saved");
-    } catch {
-      setMessageState("failed");
-    }
-  }
-
   return (
-    <main className="page">
-      <section className="card">
-        <p className="eyebrow">Icecoast Conditions</p>
-        <h1>Northeast ski scene, in one local app.</h1>
+    <main className="shell">
+      <section className="hero">
+        <p className="eyebrow">icecoastnicecoast.com</p>
+        <h1>Ice Coast conditions, without the noise.</h1>
         <p className="lede">
-          This is a minimal sample frontend wired to a FastAPI backend running in Docker.
+          A public landing page for Northeast ski conditions is coming online.
+          The first live release is intentionally small: fast static hosting,
+          Cloudflare edge protection, and a private preview path for operators.
         </p>
-        <div className="status">
-          <span className="status-label">Current sample status</span>
-          <span className="status-value">{status}</span>
-        </div>
-        <div className="message-panel">
-          <button
-            className="message-button"
-            type="button"
-            onClick={handleSaveMessage}
-            disabled={messageState === "saving"}
-          >
-            {messageState === "saving" ? "Saving..." : "Save dummy message"}
-          </button>
-          <p className={`message-feedback message-feedback-${messageState}`}>
-            {messageState === "saved"
-              ? "Dummy message saved to Postgres."
-              : messageState === "failed"
-                ? "Could not save the dummy message."
-                : "Click the button to write one dummy row into the database."}
-          </p>
-        </div>
+      </section>
+
+      <section className="panel">
+        <h2>What is live now</h2>
+        <ul>
+          <li>Public frontend delivery through Cloudflare Pages</li>
+          <li>Country-based edge blocking on the production hostname</li>
+          <li>Cloudflare Access on the preview hostname</li>
+        </ul>
+      </section>
+
+      <section className="panel">
+        <h2>What comes next</h2>
+        <ul>
+          <li>Condition summaries for core Northeast mountains</li>
+          <li>Operational monitoring and launch validation</li>
+          <li>Future dynamic features as a separate project</li>
+        </ul>
       </section>
     </main>
   );
