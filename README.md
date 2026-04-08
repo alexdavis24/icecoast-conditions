@@ -13,7 +13,7 @@ runbook and verification checklist.
 
 ## Current shape
 
-- `src/frontend/` contains a minimal React sample app
+- `src/frontend/` contains the Vite/React frontend for the public Pages site
 - `src/backend/` contains a minimal FastAPI API
 - `src/pipeline/` is reserved for future Python workers that will shape data for Postgres
 - `docker-compose.yml` brings up the frontend and backend together for local development

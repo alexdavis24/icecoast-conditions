@@ -60,10 +60,14 @@ Action: `Block`
 ## Verification Checklist
 
 1. `npm run build` succeeds in `src/frontend`
-2. Production hostname loads from an allowed region
-3. Production hostname is blocked from a disallowed region
-4. Preview hostname prompts for Access login
-5. Preview hostname is reachable after successful login from a disallowed region
+2. `npm run preview:pages` starts locally on port `4173` in `src/frontend`
+3. Production hostname loads from an allowed region
+4. Production hostname is blocked from a disallowed region
+5. Preview hostname prompts for Access login
+6. Preview hostname is reachable after successful login from a disallowed region
+7. The frontend-facing setup has no remaining public `/api` coupling
+   (no `/api` references, no `target: "http://backend:8000"` proxying, and no
+   stray `fetch(` calls in `src/frontend` that depend on a public API path)
 
 ## Manual Launch Checklist
 
