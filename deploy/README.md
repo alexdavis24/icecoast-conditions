@@ -37,10 +37,13 @@ dev.icecoastnicecoast.com {
 
 - Docker Engine with the `docker compose` plugin installed
 - Caddy already configured on the host
+- Tailscale installed on the Ubuntu host and joined to the same tailnet
+- OpenSSH server installed on the Ubuntu host
 - The GitHub Actions workflow must have these secrets:
   - `GHCR_USERNAME`
   - `GHCR_TOKEN`
-  - `SERVER_HOST`
-  - `SERVER_USER`
-  - `SERVER_SSH_KEY`
+  - `TAILSCALE_AUTHKEY`
+  - `TAILSCALE_IP`
+  - `SSH_USER`
+  - `SSH_PRIVATE_KEY`
   - `POSTGRES_PASSWORD`

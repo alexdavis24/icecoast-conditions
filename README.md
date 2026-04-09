@@ -18,9 +18,10 @@ Required GitHub Actions secrets:
 
 - `GHCR_USERNAME`
 - `GHCR_TOKEN`
-- `SERVER_HOST`
-- `SERVER_USER`
-- `SERVER_SSH_KEY`
+- `TAILSCALE_AUTHKEY`
+- `TAILSCALE_IP`
+- `SSH_USER`
+- `SSH_PRIVATE_KEY`
 - `POSTGRES_PASSWORD`
 
 ## Current shape
