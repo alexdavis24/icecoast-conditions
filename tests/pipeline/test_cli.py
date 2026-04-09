@@ -18,7 +18,7 @@ def test_cli_backfill_parses_args_and_calls_ingest():
     )
 
     assert exit_code == 0
-    assert calls == [(date(2024, 1, 1), date(2024, 1, 7), "stowe-vt")]
+    assert calls == [(date(2024, 1, 1), date(2024, 1, 7), "all")]
 
 
 def test_cli_forecast_parses_args_and_calls_ingest():

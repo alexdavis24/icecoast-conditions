@@ -404,3 +404,20 @@ def save_dummy_message() -> int:
             message_id = int(row[0]) if row is not None else 0
         connection.commit()
     return message_id
+
+
+def get_latest_observed_date(location_id: int, connection: psycopg.Connection | None = None) -> date | None:
+    if connection is None:
+        with get_connection() as connection:
+            return _get_latest_observed_date(connection, location_id)
+    return _get_latest_observed_date(connection, location_id)
+
+
+def _get_latest_observed_date(connection: psycopg.Connection, location_id: int) -> date | None:
+    with connection.cursor() as cursor:
+        cursor.execute(
+            "SELECT MAX(observed_date) FROM daily_weather WHERE location_id = %s",
+            (location_id,),
+        )
+        row = cursor.fetchone()
+        return row[0] if row and row[0] else None
