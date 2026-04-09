@@ -5,6 +5,7 @@ on:
     tags:
       - "v*.*.*"
       - "v*.*.*-dev"
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -27,20 +28,33 @@ jobs:
           owner="$(echo "${GITHUB_REPOSITORY_OWNER}" | tr '[:upper:]' '[:lower:]')"
           frontend_repo="ghcr.io/${owner}/icecoast-conditions-frontend"
           backend_repo="ghcr.io/${owner}/icecoast-conditions-backend"
-          ref_name="${GITHUB_REF_NAME}"
+          short_sha="$(git rev-parse --short=12 HEAD)"
 
-          if [[ "$ref_name" == *-dev ]]; then
+          if [[ "${GITHUB_EVENT_NAME}" == "workflow_dispatch" ]]; then
             environment="dev"
             compose_project="icecoast-dev"
             frontend_port="3001"
             backend_port="8001"
             alias_tag="dev"
+            image_tag="sha-${short_sha}"
           else
-            environment="prod"
-            compose_project="icecoast-prod"
-            frontend_port="3000"
-            backend_port="8000"
-            alias_tag="latest"
+            ref_name="${GITHUB_REF_NAME}"
+
+            if [[ "$ref_name" == *-dev ]]; then
+              environment="dev"
+              compose_project="icecoast-dev"
+              frontend_port="3001"
+              backend_port="8001"
+              alias_tag="dev"
+            else
+              environment="prod"
+              compose_project="icecoast-prod"
+              frontend_port="3000"
+              backend_port="8000"
+              alias_tag="latest"
+            fi
+
+            image_tag="$ref_name"
           fi
 
           {
@@ -48,9 +62,9 @@ jobs:
             echo "compose_project=$compose_project"
             echo "frontend_port=$frontend_port"
             echo "backend_port=$backend_port"
-            echo "frontend_image_exact=${frontend_repo}:${ref_name}"
+            echo "frontend_image_exact=${frontend_repo}:${image_tag}"
             echo "frontend_image_alias=${frontend_repo}:${alias_tag}"
-            echo "backend_image_exact=${backend_repo}:${ref_name}"
+            echo "backend_image_exact=${backend_repo}:${image_tag}"
             echo "backend_image_alias=${backend_repo}:${alias_tag}"
           } >>"$GITHUB_OUTPUT"
 
@@ -96,19 +110,49 @@ jobs:
         shell: bash
         run: |
           mkdir -p ~/.ssh
-          printf '%s\n' "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+          chmod 700 ~/.ssh
+          printf '%s\n' "${{ secrets.SSH_PRIVATE_KEY }}" | tr -d '\r' > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
-          ssh-keyscan -H "${{ secrets.TAILSCALE_IP }}" >> ~/.ssh/known_hosts
+
+      - name: Diagnose Tailscale SSH reachability
+        shell: bash
+        env:
+          TAILSCALE_IP: ${{ secrets.TAILSCALE_IP }}
+        run: |
+          set -euo pipefail
+
+          tailscale status
+
+          for attempt in {1..6}; do
+            if nc -zvw5 "$TAILSCALE_IP" 22; then
+              echo "SSH port is reachable on attempt $attempt."
+              break
+            fi
+
+            if [[ "$attempt" -eq 6 ]]; then
+              echo "SSH on port 22 is not reachable at $TAILSCALE_IP." >&2
+              exit 1
+            fi
+
+            echo "SSH on port 22 is not reachable yet; retrying in 5 seconds."
+            sleep 5
+          done
+
+      - name: Trust SSH host key if available
+        shell: bash
+        run: |
+          ssh-keyscan -T 30 -H "${{ secrets.TAILSCALE_IP }}" >> ~/.ssh/known_hosts || true
 
       - name: Sync deployment assets
         shell: bash
         run: |
-          rsync -avz --delete ./deploy/ "${{ secrets.SSH_USER }}@${{ secrets.TAILSCALE_IP }}:~/icecoast-conditions-deploy/"
+          RSYNC_RSH="ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=accept-new -o ConnectTimeout=30" \
+            rsync -avz --delete ./deploy/ "${{ secrets.SSH_USER }}@${{ secrets.TAILSCALE_IP }}:~/icecoast-conditions-deploy/"
 
       - name: Deploy release
         shell: bash
         run: |
-          ssh "${{ secrets.SSH_USER }}@${{ secrets.TAILSCALE_IP }}" \
+          ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=accept-new -o ConnectTimeout=30 "${{ secrets.SSH_USER }}@${{ secrets.TAILSCALE_IP }}" \
             "BACKEND_IMAGE='${{ steps.release.outputs.backend_image_exact }}' \
             BACKEND_PORT='${{ steps.release.outputs.backend_port }}' \
             COMPOSE_FILE='\$HOME/icecoast-conditions-deploy/compose.yml' \
