@@ -4,12 +4,24 @@ Local-first web app for tracking Northeast ski conditions and what is happening 
 
 ## Hosting
 
-The public frontend is intended to run on Cloudflare Pages with country-based
-edge blocking on `icecoastnicecoast.com` and a Cloudflare Access-protected
-preview hostname at `preview.icecoastnicecoast.com`.
+Releases are built as container images and published to GitHub Container
+Registry. A GitHub Actions workflow deploys tagged releases over SSH to an
+Ubuntu host that runs dev and production stacks side by side behind Caddy.
 
-See [docs/operations/cloudflare-pages-live-hosting.md](docs/operations/cloudflare-pages-live-hosting.md) for the deployment
-runbook and verification checklist.
+- `vX.Y.Z-dev` deploys `dev.icecoastnicecoast.com`
+- `vX.Y.Z` deploys `icecoastnicecoast.com`
+
+Deployment assets live in [`deploy/`](deploy/), and the workflow is defined in
+[`/.github/workflows/deploy.yml`](.github/workflows/deploy.yml).
+
+Required GitHub Actions secrets:
+
+- `GHCR_USERNAME`
+- `GHCR_TOKEN`
+- `SERVER_HOST`
+- `SERVER_USER`
+- `SERVER_SSH_KEY`
+- `POSTGRES_PASSWORD`
 
 ## Current shape
 
