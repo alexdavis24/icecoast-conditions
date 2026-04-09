@@ -1,0 +1,119 @@
+name: Deploy
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+      - "v*.*.*-dev"
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Resolve release settings
+        id: release
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          owner="$(echo "${GITHUB_REPOSITORY_OWNER}" | tr '[:upper:]' '[:lower:]')"
+          frontend_repo="ghcr.io/${owner}/icecoast-conditions-frontend"
+          backend_repo="ghcr.io/${owner}/icecoast-conditions-backend"
+          ref_name="${GITHUB_REF_NAME}"
+
+          if [[ "$ref_name" == *-dev ]]; then
+            environment="dev"
+            compose_project="icecoast-dev"
+            frontend_port="3001"
+            backend_port="8001"
+            alias_tag="dev"
+          else
+            environment="prod"
+            compose_project="icecoast-prod"
+            frontend_port="3000"
+            backend_port="8000"
+            alias_tag="latest"
+          fi
+
+          {
+            echo "environment=$environment"
+            echo "compose_project=$compose_project"
+            echo "frontend_port=$frontend_port"
+            echo "backend_port=$backend_port"
+            echo "frontend_image_exact=${frontend_repo}:${ref_name}"
+            echo "frontend_image_alias=${frontend_repo}:${alias_tag}"
+            echo "backend_image_exact=${backend_repo}:${ref_name}"
+            echo "backend_image_alias=${backend_repo}:${alias_tag}"
+          } >>"$GITHUB_OUTPUT"
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ secrets.GHCR_USERNAME }}
+          password: ${{ secrets.GHCR_TOKEN }}
+
+      - name: Build and push frontend image
+        uses: docker/build-push-action@v6
+        with:
+          context: ./src/frontend
+          file: ./src/frontend/Dockerfile
+          push: true
+          provenance: false
+          tags: |
+            ${{ steps.release.outputs.frontend_image_exact }}
+            ${{ steps.release.outputs.frontend_image_alias }}
+
+      - name: Build and push backend image
+        uses: docker/build-push-action@v6
+        with:
+          context: ./src/backend
+          file: ./src/backend/Dockerfile
+          push: true
+          provenance: false
+          tags: |
+            ${{ steps.release.outputs.backend_image_exact }}
+            ${{ steps.release.outputs.backend_image_alias }}
+
+      - name: Set up SSH agent
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.SERVER_SSH_KEY }}
+
+      - name: Add server to known hosts
+        shell: bash
+        run: |
+          mkdir -p ~/.ssh
+          ssh-keyscan -H "${{ secrets.SERVER_HOST }}" >> ~/.ssh/known_hosts
+
+      - name: Sync deployment assets
+        shell: bash
+        run: |
+          rsync -avz --delete ./deploy/ "${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }}:~/icecoast-conditions-deploy/"
+
+      - name: Deploy release
+        shell: bash
+        run: |
+          ssh "${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }}" \
+            "BACKEND_IMAGE='${{ steps.release.outputs.backend_image_exact }}' \
+            BACKEND_PORT='${{ steps.release.outputs.backend_port }}' \
+            COMPOSE_FILE='\$HOME/icecoast-conditions-deploy/compose.yml' \
+            COMPOSE_PROJECT_NAME='${{ steps.release.outputs.compose_project }}' \
+            DEPLOY_ROOT='\$HOME/icecoast-conditions/${{ steps.release.outputs.environment }}' \
+            FRONTEND_IMAGE='${{ steps.release.outputs.frontend_image_exact }}' \
+            FRONTEND_PORT='${{ steps.release.outputs.frontend_port }}' \
+            GHCR_TOKEN='${{ secrets.GHCR_TOKEN }}' \
+            GHCR_USERNAME='${{ secrets.GHCR_USERNAME }}' \
+            POSTGRES_PASSWORD='${{ secrets.POSTGRES_PASSWORD }}' \
+            bash '\$HOME/icecoast-conditions-deploy/remote-deploy.sh'"
