@@ -7,19 +7,9 @@ import sys
 from typing import Callable, Sequence
 
 from pipeline.forecast import fetch_and_ingest_forecast_daily
-from pipeline.openmeteo import LocationSpec, ingest_historical_daily_weather
-
-
-@dataclass(frozen=True)
-class Locations:
-    stowe_vt = LocationSpec(
-        slug="stowe-vt",
-        name="Stowe, Vermont",
-        latitude=44.4654,
-        longitude=-72.6874,
-        elevation_m=486,
-        timezone="America/New_York",
-    )
+from pipeline.openmeteo import LocationSpec
+from pipeline.locations import load_locations, get_location
+from pipeline.backfill import backfill_location, backfill_all
 
 
 def _parse_date(value: str) -> date:
@@ -34,9 +24,9 @@ def build_parser() -> argparse.ArgumentParser:
     subparsers = parser.add_subparsers(dest="command", required=True)
 
     backfill = subparsers.add_parser("backfill", help="Backfill historical daily weather into Postgres")
-    backfill.add_argument("--location", default="stowe-vt")
-    backfill.add_argument("--start", type=_parse_date, required=True)
-    backfill.add_argument("--end", type=_parse_date, required=True)
+    backfill.add_argument("--location", default="all")
+    backfill.add_argument("--start", type=_parse_date, default="2024-01-01")
+    backfill.add_argument("--end", type=_parse_date, default=date.today().isoformat())
 
     forecast = subparsers.add_parser("forecast", help="Fetch and store a forecast snapshot into Postgres")
     forecast.add_argument("--location", default="stowe-vt")
@@ -46,14 +36,15 @@ def build_parser() -> argparse.ArgumentParser:
 
 
 def _resolve_location(slug: str) -> LocationSpec:
-    if slug == "stowe-vt":
-        return Locations.stowe_vt
-    raise SystemExit(f"Unknown --location {slug!r}")
+    return get_location(slug)
 
 
-def _default_backfill(location_slug: str, start: date, end: date) -> int:
-    location = _resolve_location(location_slug)
-    rows = ingest_historical_daily_weather(location, start, end)
+def _default_backfill(location_slug: str, start: date, end: date | None = None) -> int:
+    if location_slug == "all":
+        backfill_all(start)
+        return 0
+    location = get_location(location_slug)
+    rows = backfill_location(location, start, end)
     return len(rows)
 
 
